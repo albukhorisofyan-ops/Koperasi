@@ -34,7 +34,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
   Tes: sukses, item stok habis (semua rollback, stok utuh), barang tidak
   ada, input tidak valid, harga dari klien diabaikan.
   Selesai jika: semua tes lulus.
-- [ ] **T9. Tes konflik dan simulasi online**
+- [X] **T9. Tes konflik dan simulasi online**
   Buat POST /api/simulate-online-purchase. Uji dua request bersamaan untuk
   stok terakhir (misal dengan skrip dua request paralel).
   Selesai jika: hanya satu berhasil, stok tidak pernah negatif.

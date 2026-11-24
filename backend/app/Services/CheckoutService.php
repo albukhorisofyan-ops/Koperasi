@@ -80,4 +80,35 @@ class CheckoutService
             return $transaction;
         });
     }
+
+    /**
+     * Simulate an online purchase that directly locks and reduces product stock.
+     *
+     * @throws CheckoutException
+     */
+    public function simulateOnlinePurchase(int $productId, int $quantity): Product
+    {
+        return DB::transaction(function () use ($productId, $quantity) {
+            $product = Product::where('id', $productId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$product) {
+                throw new CheckoutException('Barang tidak ditemukan', 404);
+            }
+
+            if (!$product->is_active) {
+                throw new CheckoutException("Barang {$product->name} tidak tersedia", 409);
+            }
+
+            if ($product->stock < $quantity) {
+                throw new CheckoutException("Stok {$product->name} tidak cukup", 409);
+            }
+
+            $product->stock -= $quantity;
+            $product->save();
+
+            return $product;
+        });
+    }
 }

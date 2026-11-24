@@ -18,12 +18,12 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 - [X] **T4. Migration dan model transaksi**
   Tabel `transactions` dan `transaction_items` dengan foreign key.
   Selesai jika: relasi antar model berfungsi.
-- [ ] **T5. Seeder data barang**
+- [X] **T5. Seeder data barang**
   Isi 8-10 barang contoh (pulpen, buku, air mineral, dll.).
   Selesai jika: `php artisan db:seed` mengisi tabel products.
 
 ## Fase 2: Inti Backend (The 30% Hard Problem)
-- [ ] **T6. GET /api/products**
+- [X] **T6. GET /api/products**
   Daftar barang aktif beserta stok.
   Selesai jika: endpoint mengembalikan JSON barang dari database.
 - [ ] **T7. CheckoutService dan POST /api/checkout**

@@ -15,7 +15,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 - [X] **T3. Migration dan model Product**
   Tabel `products` (name, price, stock unsigned, is_active) sesuai ARCHITECTURE.md.
   Selesai jika: migration berjalan, model Product ada.
-- [ ] **T4. Migration dan model transaksi**
+- [X] **T4. Migration dan model transaksi**
   Tabel `transactions` dan `transaction_items` dengan foreign key.
   Selesai jika: relasi antar model berfungsi.
 - [ ] **T5. Seeder data barang**

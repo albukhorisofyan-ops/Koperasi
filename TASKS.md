@@ -4,7 +4,7 @@ Aturan: kerjakan SATU task per sesi. Baca REQUIREMENTS.md, ARCHITECTURE.md,
 dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 
 ## Fase 0: Setup
-- [ ] **T1. Setup backend Laravel**
+- [X] **T1. Setup backend Laravel**
   Buat proyek Laravel di `backend/`, hubungkan ke MySQL lewat `.env`.
   Selesai jika: `php artisan migrate` berjalan tanpa error.
 - [ ] **T2. Setup frontend Vue**

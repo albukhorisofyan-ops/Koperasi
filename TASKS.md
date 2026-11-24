@@ -38,7 +38,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
   Buat POST /api/simulate-online-purchase. Uji dua request bersamaan untuk
   stok terakhir (misal dengan skrip dua request paralel).
   Selesai jika: hanya satu berhasil, stok tidak pernah negatif.
-- [ ] **T10. Riwayat transaksi**
+- [X] **T10. Riwayat transaksi**
   GET /api/transactions dan GET /api/transactions/{id}.
   Selesai jika: riwayat tampil beserta detail barang.
 

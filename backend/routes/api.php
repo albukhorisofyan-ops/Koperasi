@@ -3,6 +3,7 @@
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SimulationController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +18,6 @@ Route::get('/ping', function () {
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/checkout', [CheckoutController::class, 'checkout']);
 Route::post('/simulate-online-purchase', [SimulationController::class, 'simulateOnlinePurchase']);
+
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{id}', [TransactionController::class, 'show']);

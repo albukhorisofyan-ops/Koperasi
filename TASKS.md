@@ -43,7 +43,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
   Selesai jika: riwayat tampil beserta detail barang.
 
 ## Fase 3: Frontend Inti
-- [ ] **T11. Modul API dan halaman daftar barang**
+- [X] **T11. Modul API dan halaman daftar barang**
   Semua panggilan API lewat `src/api/`. Tampilkan nama, harga, stok.
   Selesai jika: daftar barang tampil di layar kasir.
 - [ ] **T12. Keranjang belanja**

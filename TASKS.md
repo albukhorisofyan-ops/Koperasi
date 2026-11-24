@@ -7,12 +7,12 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 - [X] **T1. Setup backend Laravel**
   Buat proyek Laravel di `backend/`, hubungkan ke MySQL lewat `.env`.
   Selesai jika: `php artisan migrate` berjalan tanpa error.
-- [ ] **T2. Setup frontend Vue**
+- [X] **T2. Setup frontend Vue**
   Buat proyek Vue (Vite) di `frontend/`, atur CORS di Laravel.
   Selesai jika: frontend bisa memanggil satu endpoint contoh dari backend.
 
 ## Fase 1: Database
-- [ ] **T3. Migration dan model Product**
+- [X] **T3. Migration dan model Product**
   Tabel `products` (name, price, stock unsigned, is_active) sesuai ARCHITECTURE.md.
   Selesai jika: migration berjalan, model Product ada.
 - [ ] **T4. Migration dan model transaksi**

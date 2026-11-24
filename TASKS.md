@@ -26,11 +26,11 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 - [X] **T6. GET /api/products**
   Daftar barang aktif beserta stok.
   Selesai jika: endpoint mengembalikan JSON barang dari database.
-- [ ] **T7. CheckoutService dan POST /api/checkout**
+- [X] **T7. CheckoutService dan POST /api/checkout**
   `DB::transaction`, `lockForUpdate`, urut by product_id, total dihitung
   di backend, rollback jika satu item gagal.
   Selesai jika: checkout normal menyimpan transaksi dan mengurangi stok.
-- [ ] **T8. Tes checkout**
+- [X] **T8. Tes checkout**
   Tes: sukses, item stok habis (semua rollback, stok utuh), barang tidak
   ada, input tidak valid, harga dari klien diabaikan.
   Selesai jika: semua tes lulus.

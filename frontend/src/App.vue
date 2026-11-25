@@ -12,6 +12,7 @@ import { RouterView, RouterLink } from 'vue-router'
         </div>
         <nav class="nav-links">
           <RouterLink to="/" class="nav-link" active-class="active">Kasir</RouterLink>
+          <RouterLink to="/transactions" class="nav-link" active-class="active">Riwayat Transaksi</RouterLink>
         </nav>
       </div>
     </header>

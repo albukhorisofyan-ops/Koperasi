@@ -53,7 +53,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
   Tombol Checkout (nonaktif saat loading), tampilkan pesan error backend,
   muat ulang stok setelah gagal.
   Selesai jika: checkout sukses dan gagal terlihat jelas di UI.
-- [ ] **T14. Halaman riwayat**
+- [X] **T14. Halaman riwayat**
   Daftar transaksi dan detailnya.
   Selesai jika: riwayat tampil dan sesuai database.
 

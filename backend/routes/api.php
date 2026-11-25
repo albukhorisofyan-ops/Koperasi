@@ -15,9 +15,16 @@ Route::get('/ping', function () {
     return response()->json(['message' => 'koperasi api ok']);
 });
 
+// Products & Management
 Route::get('/products', [ProductController::class, 'index']);
+Route::post('/products', [ProductController::class, 'store']);
+Route::put('/products/{id}', [ProductController::class, 'update']);
+Route::post('/products/{id}/restock', [ProductController::class, 'restock']);
+
+// Checkout & Simulation
 Route::post('/checkout', [CheckoutController::class, 'checkout']);
 Route::post('/simulate-online-purchase', [SimulationController::class, 'simulateOnlinePurchase']);
 
+// Transactions History
 Route::get('/transactions', [TransactionController::class, 'index']);
 Route::get('/transactions/{id}', [TransactionController::class, 'show']);

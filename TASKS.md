@@ -58,7 +58,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
   Selesai jika: riwayat tampil dan sesuai database.
 
 ## Fase 4: Kelola Barang (prioritas 2)
-- [ ] **T15. Backend kelola barang**
+- [X] **T15. Backend kelola barang**
   POST /api/products, PUT /api/products/{id}, POST /api/products/{id}/restock
   (pakai lock, menambah bukan menimpa).
   Selesai jika: ketiga endpoint bekerja dengan validasi.

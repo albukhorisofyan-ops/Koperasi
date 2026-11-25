@@ -62,7 +62,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
   POST /api/products, PUT /api/products/{id}, POST /api/products/{id}/restock
   (pakai lock, menambah bukan menimpa).
   Selesai jika: ketiga endpoint bekerja dengan validasi.
-- [ ] **T16. Tes restock**
+- [X] **T16. Tes restock**
   Tes: restock normal, jumlah tidak valid, restock bersamaan dengan penjualan.
   Selesai jika: semua tes lulus.
 - [ ] **T17. Halaman Kelola Barang**

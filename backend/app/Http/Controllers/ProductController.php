@@ -74,4 +74,23 @@ class ProductController extends Controller
             'data' => $product,
         ], 200);
     }
+
+    /**
+     * Deactivate the specified product.
+     */
+    public function deactivate(int $id): JsonResponse
+    {
+        $product = $this->productService->deactivateProduct($id);
+
+        if (!$product) {
+            return response()->json([
+                'message' => 'Barang tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Barang berhasil dinonaktifkan',
+            'data' => $product,
+        ], 200);
+    }
 }

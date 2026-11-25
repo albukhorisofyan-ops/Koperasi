@@ -20,6 +20,7 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products', [ProductController::class, 'store']);
 Route::put('/products/{id}', [ProductController::class, 'update']);
 Route::post('/products/{id}/restock', [ProductController::class, 'restock']);
+Route::patch('/products/{id}/deactivate', [ProductController::class, 'deactivate']);
 
 // Checkout & Simulation
 Route::post('/checkout', [CheckoutController::class, 'checkout']);

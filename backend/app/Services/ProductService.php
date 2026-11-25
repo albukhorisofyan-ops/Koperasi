@@ -84,4 +84,21 @@ class ProductService
             return $product;
         });
     }
+
+    /**
+     * Deactivate a product (set is_active = false) so it no longer appears in sales list.
+     */
+    public function deactivateProduct(int $id): ?Product
+    {
+        $product = Product::find($id);
+
+        if (!$product) {
+            return null;
+        }
+
+        $product->is_active = false;
+        $product->save();
+
+        return $product;
+    }
 }

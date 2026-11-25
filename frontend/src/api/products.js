@@ -47,4 +47,15 @@ export const productApi = {
       body: JSON.stringify({ quantity }),
     });
   },
+
+  /**
+   * Menonaktifkan barang agar tidak muncul di daftar jual kasir.
+   * Endpoint: PATCH /api/products/{id}/deactivate
+   * @param {number|string} id
+   */
+  deactivateProduct(id) {
+    return apiClient(`/products/${id}/deactivate`, {
+      method: 'PATCH',
+    });
+  },
 };

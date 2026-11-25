@@ -38,6 +38,15 @@ const restockModal = ref({
   error: null,
 })
 
+// Modal Nonaktifkan Barang
+const deactivateModal = ref({
+  open: false,
+  id: null,
+  name: '',
+  loading: false,
+  error: null,
+})
+
 const fetchProducts = async () => {
   loading.value = true
   listError.value = null
@@ -216,6 +225,44 @@ const handleRestockProduct = async () => {
   }
 }
 
+/**
+ * Buka modal nonaktifkan barang
+ */
+const openDeactivateModal = (product) => {
+  deactivateModal.value = {
+    open: true,
+    id: product.id,
+    name: product.name,
+    loading: false,
+    error: null,
+  }
+}
+
+const closeDeactivateModal = () => {
+  deactivateModal.value.open = false
+}
+
+/**
+ * Handle submit nonaktifkan barang
+ */
+const handleDeactivateProduct = async () => {
+  deactivateModal.value.error = null
+  deactivateModal.value.loading = true
+  try {
+    await productApi.deactivateProduct(deactivateModal.value.id)
+
+    showSuccess(`Barang "${deactivateModal.value.name}" berhasil dinonaktifkan!`)
+    closeDeactivateModal()
+
+    // Muat ulang daftar barang agar barang nonaktif hilang dari daftar
+    await fetchProducts()
+  } catch (err) {
+    deactivateModal.value.error = err.message || 'Gagal menonaktifkan barang.'
+  } finally {
+    deactivateModal.value.loading = false
+  }
+}
+
 onMounted(() => {
   fetchProducts()
 })
@@ -378,6 +425,13 @@ onMounted(() => {
                 >
                   ➕ Tambah Stok
                 </button>
+                <button
+                  class="btn-action btn-deactivate"
+                  title="Nonaktifkan Barang"
+                  @click="openDeactivateModal(product)"
+                >
+                  🚫 Nonaktifkan
+                </button>
               </td>
             </tr>
           </tbody>
@@ -501,6 +555,49 @@ onMounted(() => {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal Konfirmasi Nonaktifkan Barang -->
+    <div v-if="deactivateModal.open" class="modal-backdrop" @click.self="closeDeactivateModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">🚫 Nonaktifkan Barang</h3>
+          <button class="btn-close-modal" @click="closeDeactivateModal">✕</button>
+        </div>
+
+        <div v-if="deactivateModal.error" class="alert-banner alert-danger">
+          <span>⚠️ {{ deactivateModal.error }}</span>
+        </div>
+
+        <div class="modal-body">
+          <p class="deactivate-confirm-text">
+            Apakah Anda yakin ingin menonaktifkan barang <strong>"{{ deactivateModal.name }}"</strong>?
+          </p>
+          <div class="deactivate-info-box">
+            ℹ️ <strong>Catatan:</strong> Barang ini tidak akan dihapus permanen. Barang hanya akan disembunyikan dari daftar jual kasir agar seluruh riwayat transaksi sebelumnya tetap utuh di sistem.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn-secondary"
+            :disabled="deactivateModal.loading"
+            @click="closeDeactivateModal"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            class="btn-danger-action"
+            :disabled="deactivateModal.loading"
+            @click="handleDeactivateProduct"
+          >
+            <span v-if="deactivateModal.loading">Memproses...</span>
+            <span v-else>Ya, Nonaktifkan</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -939,6 +1036,53 @@ onMounted(() => {
 
 .btn-success-action:hover:not(:disabled) {
   background-color: #047857;
+}
+
+.btn-deactivate {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.btn-deactivate:hover {
+  background-color: #fee2e2;
+}
+
+.deactivate-confirm-text {
+  font-size: 0.95rem;
+  color: #1f2937;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.deactivate-info-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.825rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.btn-danger-action {
+  padding: 10px 20px;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btn-danger-action:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.btn-danger-action:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
 }
 
 .font-bold { font-weight: 700; }

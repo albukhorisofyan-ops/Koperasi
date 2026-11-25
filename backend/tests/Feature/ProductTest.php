@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\TransactionItem;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -227,6 +229,78 @@ class ProductTest extends TestCase
         $response = $this->postJson('/api/products/999999/restock', [
             'quantity' => 5,
         ]);
+
+        $response->assertStatus(404);
+        $response->assertJson([
+            'message' => 'Barang tidak ditemukan',
+        ]);
+    }
+
+    /**
+     * PATCH /api/products/{id}/deactivate - Barang nonaktif hilang dari daftar jual, riwayat tetap utuh.
+     */
+    public function test_can_deactivate_product_and_it_disappears_from_sales_list_while_history_remains(): void
+    {
+        // 1. Buat produk aktif
+        $product = Product::create([
+            'name' => 'Barang Siap Nonaktif',
+            'price' => 7500,
+            'stock' => 10,
+            'is_active' => true,
+        ]);
+
+        // 2. Buat riwayat transaksi masa lalu yang memuat produk ini
+        $trx = Transaction::create(['total' => 15000]);
+        $item = TransactionItem::create([
+            'transaction_id' => $trx->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price_at_purchase' => 7500,
+            'subtotal' => 15000,
+        ]);
+
+        // 3. Panggil endpoint nonaktifkan
+        $response = $this->patchJson("/api/products/{$product->id}/deactivate");
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'message' => 'Barang berhasil dinonaktifkan',
+            'data' => [
+                'id' => $product->id,
+                'is_active' => false,
+            ],
+        ]);
+
+        // 4. Verifikasi status di database menjadi is_active = false
+        $this->assertFalse((bool) $product->fresh()->is_active);
+
+        // 5. Verifikasi barang hilang dari daftar jual kasir (GET /api/products)
+        $catalogResponse = $this->getJson('/api/products');
+        $catalogResponse->assertJsonMissing([
+            'id' => $product->id,
+            'name' => 'Barang Siap Nonaktif',
+        ]);
+
+        // 6. Verifikasi riwayat transaksi dan detail item tetap utuh
+        $this->assertDatabaseHas('transactions', ['id' => $trx->id, 'total' => 15000]);
+        $this->assertDatabaseHas('transaction_items', [
+            'id' => $item->id,
+            'transaction_id' => $trx->id,
+            'product_id' => $product->id,
+            'subtotal' => 15000,
+        ]);
+
+        // Relasi transaksi masih dapat membaca produk
+        $item->refresh();
+        $this->assertEquals('Barang Siap Nonaktif', $item->product->name);
+    }
+
+    /**
+     * PATCH /api/products/{id}/deactivate - 404 ketika ID barang tidak ditemukan.
+     */
+    public function test_deactivate_product_returns_404_when_not_found(): void
+    {
+        $response = $this->patchJson('/api/products/999999/deactivate');
 
         $response->assertStatus(404);
         $response->assertJson([

@@ -23,7 +23,14 @@ export async function apiClient(endpoint, options = {}) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const errorMessage = data?.message || `Request gagal dengan status ${response.status}`;
+    let errorMessage = data?.message || `Request gagal dengan status ${response.status}`;
+    // Jika terdapat detail validasi (Laravel 422 errors)
+    if (data?.errors && typeof data.errors === 'object') {
+      const details = Object.values(data.errors).flat().join(', ');
+      if (details) {
+        errorMessage = details;
+      }
+    }
     const error = new Error(errorMessage);
     error.status = response.status;
     error.data = data;

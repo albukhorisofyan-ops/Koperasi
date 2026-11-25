@@ -9,4 +9,42 @@ export const productApi = {
   getProducts() {
     return apiClient('/products');
   },
+
+  /**
+   * Menambah barang baru ke database.
+   * Endpoint: POST /api/products
+   * @param {{ name: string, price: number, stock: number }} data
+   */
+  createProduct(data) {
+    return apiClient('/products', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Mengubah nama dan/atau harga barang.
+   * Endpoint: PUT /api/products/{id}
+   * @param {number|string} id
+   * @param {{ name?: string, price?: number }} data
+   */
+  updateProduct(id, data) {
+    return apiClient(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Menambah stok barang (restock).
+   * Endpoint: POST /api/products/{id}/restock
+   * @param {number|string} id
+   * @param {number} quantity
+   */
+  restockProduct(id, quantity) {
+    return apiClient(`/products/${id}/restock`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity }),
+    });
+  },
 };

@@ -65,7 +65,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 - [X] **T16. Tes restock**
   Tes: restock normal, jumlah tidak valid, restock bersamaan dengan penjualan.
   Selesai jika: semua tes lulus.
-- [ ] **T17. Halaman Kelola Barang**
+- [X] **T17. Halaman Kelola Barang**
   Formulir tambah barang, ubah harga/nama, tombol tambah stok.
   Selesai jika: kasir bisa menambah barang dan stok dari UI.
 - [ ] **T18. Nonaktifkan barang (opsional)**

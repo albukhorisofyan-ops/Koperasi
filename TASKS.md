@@ -49,7 +49,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 - [X] **T12. Keranjang belanja**
   Tambah, ubah jumlah, hapus item, total otomatis.
   Selesai jika: keranjang bekerja tanpa memanggil backend.
-- [ ] **T13. Checkout dan penanganan error**
+- [X] **T13. Checkout dan penanganan error**
   Tombol Checkout (nonaktif saat loading), tampilkan pesan error backend,
   muat ulang stok setelah gagal.
   Selesai jika: checkout sukses dan gagal terlihat jelas di UI.

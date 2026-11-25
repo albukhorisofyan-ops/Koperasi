@@ -1,12 +1,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { productApi } from '@/api'
+import { productApi, checkoutApi } from '@/api'
 import { useCart } from '@/composables/useCart'
 
 const products = ref([])
 const loading = ref(false)
 const error = ref(null)
 const searchQuery = ref('')
+
+// State Checkout
+const isCheckingOut = ref(false)
+const checkoutError = ref(null)
+const checkoutSuccess = ref(null)
 
 const {
   cartItems,
@@ -43,12 +48,65 @@ const filteredProducts = computed(() => {
 })
 
 const formatRupiah = (number) => {
+  if (number === undefined || number === null) return 'Rp 0'
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(number)
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return new Date().toLocaleString('id-ID')
+  return new Date(dateStr).toLocaleString('id-ID', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
+}
+
+/**
+ * Memproses checkout transaksi kasir.
+ * Menangani state loading, error dari backend, dan muat ulang stok setelah gagal maupun sukses.
+ */
+const handleCheckout = async () => {
+  if (cartItems.value.length === 0 || isCheckingOut.value) return
+
+  isCheckingOut.value = true
+  checkoutError.value = null
+  checkoutSuccess.value = null
+
+  try {
+    const payload = cartItems.value.map((item) => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+    }))
+
+    const response = await checkoutApi.checkout(payload)
+
+    // Simpan struk transaksi sukses
+    checkoutSuccess.value = response.transaction || response.data || response
+    clearCart()
+
+    // Muat ulang stok katalog barang
+    await fetchProducts()
+  } catch (err) {
+    // Tampilkan pesan error spesifik dari backend (misal: "Stok Pulpen tidak cukup")
+    checkoutError.value = err.message || 'Terjadi kesalahan saat memproses checkout.'
+
+    // Wajib: muat ulang stok setelah gagal agar kasir melihat stok riil terbaru
+    await fetchProducts()
+  } finally {
+    isCheckingOut.value = false
+  }
+}
+
+const dismissError = () => {
+  checkoutError.value = null
+}
+
+const closeReceiptModal = () => {
+  checkoutSuccess.value = null
 }
 
 onMounted(() => {
@@ -144,7 +202,7 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- Kolom Kanan: Keranjang Belanja -->
+    <!-- Kolom Kanan: Keranjang Belanja & Checkout -->
     <aside class="cart-section">
       <div class="cart-card">
         <div class="cart-header">
@@ -157,11 +215,23 @@ onMounted(() => {
           <button
             v-if="cartItems.length > 0"
             class="btn-clear-cart"
+            :disabled="isCheckingOut"
             title="Kosongkan Keranjang"
             @click="clearCart"
           >
             Kosongkan
           </button>
+        </div>
+
+        <!-- Banner Error Checkout -->
+        <div v-if="checkoutError" class="checkout-alert-error">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-body">
+            <div class="alert-title">Checkout Gagal!</div>
+            <div class="alert-message">{{ checkoutError }}</div>
+            <div class="alert-sub">Stok barang di katalog telah dimuat ulang otomatis.</div>
+          </div>
+          <button class="btn-alert-close" title="Tutup" @click="dismissError">✕</button>
         </div>
 
         <!-- Keranjang Kosong -->
@@ -183,6 +253,7 @@ onMounted(() => {
                 <span class="cart-item-name">{{ item.name }}</span>
                 <button
                   class="btn-remove-item"
+                  :disabled="isCheckingOut"
                   title="Hapus barang"
                   @click="removeFromCart(item.product_id)"
                 >
@@ -199,7 +270,7 @@ onMounted(() => {
                 <div class="quantity-controller">
                   <button
                     class="btn-qty"
-                    :disabled="item.quantity <= 1"
+                    :disabled="item.quantity <= 1 || isCheckingOut"
                     @click="decrementQuantity(item.product_id)"
                   >
                     -
@@ -208,13 +279,14 @@ onMounted(() => {
                     type="number"
                     min="1"
                     :max="item.stock"
+                    :disabled="isCheckingOut"
                     :value="item.quantity"
                     class="qty-input"
                     @change="updateQuantity(item.product_id, $event.target.value, item.stock)"
                   />
                   <button
                     class="btn-qty"
-                    :disabled="item.quantity >= item.stock"
+                    :disabled="item.quantity >= item.stock || isCheckingOut"
                     @click="incrementQuantity(item.product_id, item.stock)"
                   >
                     +
@@ -225,20 +297,82 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Total Ringkasan Otomatis -->
+          <!-- Total Ringkasan & Tombol Checkout -->
           <div class="cart-summary">
             <div class="summary-row">
               <span class="summary-label">Total Kuantitas:</span>
               <span class="summary-value">{{ totalItemsCount }} pcs</span>
             </div>
             <div class="summary-row total-row">
-              <span class="total-label">Total Belanja:</span>
+              <span class="total-label">Total Bayar:</span>
               <span class="total-amount">{{ formatRupiah(totalPrice) }}</span>
             </div>
+
+            <!-- Tombol Checkout -->
+            <button
+              class="btn-checkout"
+              :disabled="cartItems.length === 0 || isCheckingOut"
+              @click="handleCheckout"
+            >
+              <span v-if="isCheckingOut" class="btn-checkout-loading">
+                <span class="spinner-small"></span> Memproses Checkout...
+              </span>
+              <span v-else>
+                💳 Proses Checkout ({{ formatRupiah(totalPrice) }})
+              </span>
+            </button>
           </div>
         </div>
       </div>
     </aside>
+
+    <!-- Modal Struk Transaksi Sukses -->
+    <div v-if="checkoutSuccess" class="modal-backdrop" @click.self="closeReceiptModal">
+      <div class="receipt-card">
+        <div class="receipt-header">
+          <div class="receipt-badge-success">✓ Transaksi Berhasil</div>
+          <h2 class="receipt-title">Struk Penjualan Koperasi</h2>
+          <div class="receipt-meta">
+            <span>No: #{{ checkoutSuccess.id }}</span>
+            <span>{{ formatDate(checkoutSuccess.created_at) }}</span>
+          </div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-items">
+          <div
+            v-for="item in checkoutSuccess.items"
+            :key="item.id"
+            class="receipt-item-row"
+          >
+            <div class="receipt-item-desc">
+              <span class="item-desc-name">{{ item.product ? item.product.name : `Barang #${item.product_id}` }}</span>
+              <span class="item-desc-calc">
+                {{ item.quantity }} x {{ formatRupiah(item.price_at_purchase) }}
+              </span>
+            </div>
+            <span class="receipt-item-subtotal">
+              {{ formatRupiah(item.subtotal) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-total-row">
+          <span class="receipt-total-label">TOTAL AKHIR:</span>
+          <span class="receipt-total-amount">{{ formatRupiah(checkoutSuccess.total) }}</span>
+        </div>
+
+        <div class="receipt-footer">
+          <p class="receipt-thanks">Terima kasih atas kunjungan Anda!</p>
+          <button class="btn-receipt-close" @click="closeReceiptModal">
+            Transaksi Baru
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -527,8 +661,72 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.btn-clear-cart:hover {
+.btn-clear-cart:hover:not(:disabled) {
   background-color: #fee2e2;
+}
+
+.btn-clear-cart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Alert Error Checkout */
+.checkout-alert-error {
+  background-color: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.alert-body {
+  flex: 1;
+}
+
+.alert-title {
+  font-weight: 700;
+  color: #991b1b;
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+.alert-message {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.alert-sub {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.btn-alert-close {
+  background: none;
+  border: none;
+  color: #991b1b;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0 4px;
 }
 
 .cart-empty {
@@ -559,7 +757,7 @@ onMounted(() => {
 }
 
 .cart-items-list {
-  max-height: 380px;
+  max-height: 340px;
   overflow-y: auto;
   padding: 12px 16px;
   display: flex;
@@ -600,8 +798,13 @@ onMounted(() => {
   line-height: 1;
 }
 
-.btn-remove-item:hover {
+.btn-remove-item:hover:not(:disabled) {
   color: #ef4444;
+}
+
+.btn-remove-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .cart-item-details {
@@ -669,6 +872,10 @@ onMounted(() => {
   -moz-appearance: textfield;
 }
 
+.qty-input:disabled {
+  background-color: #f3f4f6;
+}
+
 .qty-input::-webkit-outer-spin-button,
 .qty-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -700,11 +907,11 @@ onMounted(() => {
 }
 
 .total-row {
-  margin-top: 12px;
+  margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed #cbd5e1;
   font-size: 1.1rem;
-  margin-bottom: 0;
+  margin-bottom: 14px;
 }
 
 .total-label {
@@ -716,6 +923,202 @@ onMounted(() => {
   font-weight: 800;
   color: #059669;
   font-size: 1.25rem;
+}
+
+.btn-checkout {
+  width: 100%;
+  padding: 12px;
+  background-color: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+}
+
+.btn-checkout:hover:not(:disabled) {
+  background-color: #047857;
+  box-shadow: 0 4px 6px rgba(5, 150, 105, 0.3);
+}
+
+.btn-checkout:disabled {
+  background-color: #9ca3af;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-checkout-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Modal Struk Sukses */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.receipt-card {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: scaleUp 0.2s ease-out;
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.receipt-header {
+  text-align: center;
+}
+
+.receipt-badge-success {
+  display: inline-block;
+  background-color: #d1fae5;
+  color: #065f46;
+  font-size: 0.825rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 8px;
+}
+
+.receipt-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 6px;
+}
+
+.receipt-meta {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.receipt-divider {
+  border-top: 1px dashed #d1d5db;
+  margin: 16px 0;
+}
+
+.receipt-items {
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.receipt-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 0.875rem;
+}
+
+.receipt-item-desc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-desc-name {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.item-desc-calc {
+  font-size: 0.775rem;
+  color: #6b7280;
+}
+
+.receipt-item-subtotal {
+  font-weight: 700;
+  color: #111827;
+}
+
+.receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.15rem;
+}
+
+.receipt-total-label {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.receipt-total-amount {
+  font-weight: 900;
+  color: #059669;
+  font-size: 1.35rem;
+}
+
+.receipt-footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.receipt-thanks {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0 0 16px;
+  font-style: italic;
+}
+
+.btn-receipt-close {
+  width: 100%;
+  padding: 12px;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btn-receipt-close:hover {
+  background-color: #1d4ed8;
 }
 
 /* Responsif untuk layar kecil */

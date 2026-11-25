@@ -46,7 +46,7 @@ dan RULES.md sebelum mulai. Centang task hanya jika "Selesai jika" terpenuhi.
 - [X] **T11. Modul API dan halaman daftar barang**
   Semua panggilan API lewat `src/api/`. Tampilkan nama, harga, stok.
   Selesai jika: daftar barang tampil di layar kasir.
-- [ ] **T12. Keranjang belanja**
+- [X] **T12. Keranjang belanja**
   Tambah, ubah jumlah, hapus item, total otomatis.
   Selesai jika: keranjang bekerja tanpa memanggil backend.
 - [ ] **T13. Checkout dan penanganan error**
